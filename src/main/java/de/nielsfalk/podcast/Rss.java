@@ -1,8 +1,11 @@
 package de.nielsfalk.podcast;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,7 +26,19 @@ public class Rss {
     private final String atom = "http://www.w3.org/2005/Atom";
 
     @XmlElement
-    private final Channel channel = new Channel();
+    private Channel channel;
+    private HttpServletRequest request;
+
+    public Rss(HttpServletRequest request) {
+        this();
+        this.request = request;
+        channel = new Channel();
+        channel.setItems(Arrays.asList(new Item(channel, request)));
+    }
+
+    public Rss() {
+
+    }
 
 
     public static class Channel {
@@ -58,7 +73,11 @@ public class Rss {
         private final Image image = new Image("http://nielsfalk.de/_nielsFalk.png");
 
         @XmlElement(name = "item")
-        List<Item> items = Arrays.asList(new Item(this));
+        List<Item> items;
+
+        public void setItems(List<Item> items) {
+            this.items = items;
+        }
     }
 
     public static class Item{
@@ -78,10 +97,10 @@ public class Rss {
         private final String description = "Niels Falk unicycling in Hamburg (Marco Polo Terrassen, Eimsbusch Skatepark, Acker Pool Co) and Berlin (Velodrom, Volkspark Friedrichshain, Schmetterlingsghetto). With Dori Lehmann, Uli Malende, Niko Wilbert and Nadine Wegner as guestriders. The Music is from Fuo (Carca, Zrk)";
 
         @XmlElement
-        private final Enclosure enclosure = new Enclosure("https://r14---sn-5hn7ym7s.googlevideo.com/videoplayback?key=yt5&ip=79.201.239.17&sparams=dur%2Cid%2Cinitcwndbps%2Cip%2Cipbits%2Citag%2Cmime%2Cmm%2Cms%2Cmv%2Cnh%2Cratebypass%2Crequiressl%2Csource%2Cupn%2Cexpire&signature=89B087E1044ED171EE331B03CB6BF1E91BC75514.2776A419BB941117FAF922F7627596ECD292DCF5&id=o-ADsTTeISLeymssE_n8-6dekHTimffW1u2tjz7gaooyZV&ms=au&mt=1418500031&mv=m&dur=0.000&mime=video%2Fwebm&sver=3&source=youtube&initcwndbps=657500&requiressl=yes&nh=EAE&ratebypass=yes&ipbits=0&expire=1418521721&mm=31&fexp=900234%2C900718%2C905639%2C908213%2C917000%2C924638%2C927622%2C932404%2C939973%2C9405576%2C941004%2C943917%2C947209%2C947218%2C948124%2C952302%2C952605%2C952901%2C953912%2C957103%2C957105%2C957201&upn=W99ifZWLOnw&itag=43&signature=89B087E1044ED171EE331B03CB6BF1E91BC75514.2776A419BB941117FAF922F7627596ECD292DCF5", 209515617);
+        private final Enclosure enclosure;
 
         @XmlElement
-        private final String link = "https://www.youtube.com/watch?v=FhLnyNwStiE";
+        private final String link = "https://www.youtube.com/watch?v=NswSP0Hrh9Q";
 
         @XmlElement
         private final String pubDate = "Mon, 25 Aug 2014 00:00:00 GMT";//todo :use Date and converter
@@ -93,8 +112,26 @@ public class Rss {
         private final String explicit = "no";
 
 
-        public Item(Channel channel) {
+        public Item(Channel channel, HttpServletRequest request) {
             author = channel.author;
+            StringBuffer url = request.getRequestURL();
+            if (!url.toString().endsWith("/")) {
+                url.append('/');
+            }
+
+            String videoPlayback = "https://www.youtube.com/watch?v=NswSP0Hrh9Q";
+            try {
+                url.append(URLEncoder.encode(videoPlayback, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+            url.append("/video.mp4");
+            enclosure = new Enclosure(url.toString(), 209515617);
+
+        }
+
+        public Enclosure getEnclosure() {
+            return enclosure;
         }
     }
 
