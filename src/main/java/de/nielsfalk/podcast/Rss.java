@@ -1,5 +1,7 @@
 package de.nielsfalk.podcast;
 
+import org.jsoup.select.Elements;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -27,11 +29,9 @@ public class Rss {
 
     @XmlElement
     private Channel channel;
-    private HttpServletRequest request;
 
     public Rss(HttpServletRequest request) {
         this();
-        this.request = request;
         channel = new Channel();
         channel.setItems(Arrays.asList(new Item(channel, request)));
     }
@@ -43,40 +43,69 @@ public class Rss {
 
     public static class Channel {
         @XmlElement
-        private final String title = "Der Spezialist";
+        String title = "Der Spezialist";
 
         @XmlElement
-        private final String link = "http://www.nielsfalk.de/";
+        String link = "http://www.nielsfalk.de/";
 
         @XmlElement
         private final String language = "de";
 
         @XmlElement(name = "itunes:subtitle")
-        private final String subTitle = "Der nagelneue Podcast zum Lorem Ypsum";
+        String subTitle = "Der nagelneue Podcast zum Lorem Ypsum";
 
         @XmlElement(name = "itunes:author")
-        private final String author = "Niels Falk";
+        private String author = "Niels Falk";
 
         @XmlElement
-        private final String description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
+        String description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
 
         @XmlElement(name = "itunes:summary")
-        private final String summary = subTitle;
+        private String summary = subTitle;
 
         @XmlElement(name = "itunes:explicit")
         private final String explicit = "no";
 
         @XmlElement(name = "itunes:owner")
-        private final Owner owner = new Owner("Niels", "Podcast@Nielsfalk.de");
+        private Owner owner = new Owner("Niels", "Podcast@Nielsfalk.de");
 
         @XmlElement(name = "itunes:image")
-        private final Image image = new Image("http://nielsfalk.de/_nielsFalk.png");
+        Image image;
 
         @XmlElement(name = "item")
         List<Item> items;
 
         public void setItems(List<Item> items) {
             this.items = items;
+        }
+
+
+        public Channel image(String href) {
+            image = new Image(href);
+            return this;
+        }
+
+        public Channel title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Channel link(String link) {
+            this.link = link;
+            return this;
+        }
+
+        public Channel description(String description) {
+            this.description = description;
+            subTitle = description;
+            summary = description;
+            return this;
+        }
+
+        public Channel author(String user) {
+            author = user;
+            owner = new Owner(user, user + '@' + user + ".buzz");
+            return this;
         }
     }
 
@@ -152,7 +181,7 @@ public class Rss {
 
     public static class Image {
         @XmlAttribute
-        private final String href;
+        final String href;
 
         public Image(String href) {
             this.href = href;
