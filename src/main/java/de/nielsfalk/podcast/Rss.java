@@ -1,14 +1,16 @@
 package de.nielsfalk.podcast;
 
-import org.jsoup.select.Elements;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,11 +35,15 @@ public class Rss {
     public Rss(HttpServletRequest request) {
         this();
         channel = new Channel();
-        channel.setItems(Arrays.asList(new Item(channel, request)));
+        channel.setItems(Arrays.asList(new Item(channel, request, "https://www.youtube.com/watch?v=NswSP0Hrh9Q")));
     }
 
     public Rss() {
+    }
 
+    public Rss(Channel channel) {
+        this();
+        this.channel = channel;
     }
 
 
@@ -111,28 +117,29 @@ public class Rss {
 
     public static class Item{
         @XmlElement
-        private final String title = "Niels Falk 42010";
+        private String title = "Niels Falk 42010";
 
         @XmlElement(name = "itunes:author")
-        private final String author;
+        private String author;
 
         @XmlElement(name = "itunes:subtitle")
-        private final String subTitle = "Niels Falk 42010";
+        private String subTitle = "Niels Falk 42010";
 
         @XmlElement(name = "itunes:summary")
-        private final String summary = subTitle;
+        private String summary = subTitle;
 
         @XmlElement
-        private final String description = "Niels Falk unicycling in Hamburg (Marco Polo Terrassen, Eimsbusch Skatepark, Acker Pool Co) and Berlin (Velodrom, Volkspark Friedrichshain, Schmetterlingsghetto). With Dori Lehmann, Uli Malende, Niko Wilbert and Nadine Wegner as guestriders. The Music is from Fuo (Carca, Zrk)";
+        private String description = "Niels Falk unicycling in Hamburg (Marco Polo Terrassen, Eimsbusch Skatepark, Acker Pool Co) and Berlin (Velodrom, Volkspark Friedrichshain, Schmetterlingsghetto). With Dori Lehmann, Uli Malende, Niko Wilbert and Nadine Wegner as guestriders. The Music is from Fuo (Carca, Zrk)";
 
         @XmlElement
         private final Enclosure enclosure;
 
         @XmlElement
-        private final String link = "https://www.youtube.com/watch?v=NswSP0Hrh9Q";
+        private String link;
 
         @XmlElement
-        private final String pubDate = "Mon, 25 Aug 2014 00:00:00 GMT";//todo :use Date and converter
+        @XmlJavaTypeAdapter(value = PubDateAdapter.class)
+        private Date pubDate = new Date();
 
         @XmlElement(name = "itunes:duration")
         private final String duration = "1:18:00";
@@ -140,17 +147,20 @@ public class Rss {
         @XmlElement(name = "itunes:explicit")
         private final String explicit = "no";
 
-
-        public Item(Channel channel, HttpServletRequest request) {
+        public Item(Channel channel, HttpServletRequest request, String link) {
+            this(link, request.getRequestURL().toString());
             author = channel.author;
-            StringBuffer url = request.getRequestURL();
+        }
+
+        public Item(String link, String requestURL) {
+            this.link = link;
+            StringBuilder url = new StringBuilder().append(requestURL);
             if (!url.toString().endsWith("/")) {
                 url.append('/');
             }
 
-            String videoPlayback = "https://www.youtube.com/watch?v=NswSP0Hrh9Q";
             try {
-                url.append(URLEncoder.encode(videoPlayback, "UTF-8"));
+                url.append(URLEncoder.encode(link, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
@@ -161,6 +171,28 @@ public class Rss {
 
         public Enclosure getEnclosure() {
             return enclosure;
+        }
+
+        public Item title(String title) {
+            this.title = title;
+            subTitle = title;
+            summary = title;
+            return this;
+        }
+
+        public Item author(String author) {
+            this.author = author;
+            return this;
+        }
+
+        public Item description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Item pubDate(Date pubDate) {
+            this.pubDate = pubDate;
+            return this;
         }
     }
 
@@ -205,5 +237,19 @@ public class Rss {
 
     public static class AtomLink {
 
+    }
+
+    public static class PubDateAdapter extends XmlAdapter<String, Date> {
+        private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        @Override
+        public String marshal(Date date) throws Exception {
+            return dateFormat.format(date);
+        }
+
+        @Override
+        public Date unmarshal(String string) throws Exception {
+            return dateFormat.parse(string);
+        }
     }
 }

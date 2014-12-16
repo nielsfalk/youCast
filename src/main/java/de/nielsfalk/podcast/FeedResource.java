@@ -26,9 +26,19 @@ public class FeedResource {
         return Response.ok(new Rss(request)).build();
     }
 
-    @Path("{playback}/video.mp4")
+    @Path("{user}")
     @GET
-    public Response getVideo(@PathParam("playback") String playback) throws URISyntaxException {
+    public Response youtube(@PathParam("user") String user) {
+        YoutubeUser youtubeUser = new YoutubeUser(user);
+        Rss.Channel channel = youtubeUser.getChannel();
+        String requestURL = request.getRequestURL().toString();
+        channel.setItems(youtubeUser.getUploads(requestURL));
+        return Response.ok(new Rss(channel)).build();
+    }
+
+    @Path("{user}/{playback}/video.mp4")
+    @GET
+    public Response getVideo(@PathParam("playback") String playback, @PathParam("user") String user) throws URISyntaxException {
         URI location = VGetBridge.realUrl(playback).toURI();
         return Response.status(MOVED_PERMANENTLY).location(location).build();
     }
