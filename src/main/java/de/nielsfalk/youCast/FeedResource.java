@@ -19,11 +19,6 @@ public class FeedResource {
     @Context
     private HttpServletRequest request;
 
-    @GET
-    public Response feed() {
-        return Response.ok(new Rss(request)).build();
-    }
-
     @Path("{user}")
     @GET
     public Response youtube(@PathParam("user") String user) {

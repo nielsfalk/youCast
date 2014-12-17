@@ -12,6 +12,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static de.nielsfalk.youCast.Rss.title;
 import static javax.xml.bind.DatatypeConverter.parseDateTime;
 
 /**
@@ -29,8 +30,7 @@ public class YoutubeUser {
             String xml = IOUtils.toString(new URL("https://gdata.youtube.com/feeds/api/users/" + user), "UTF8");
             Document document = Jsoup.parse(xml);
 
-
-            return new Channel()
+            return title(document.getElementsByTag("title").text())
                     .image(document.getElementsByTag("media:thumbnail").attr("url"))
                     .title(document.getElementsByTag("title").text())
                     .link("https://www.youtube.com/user/" + user)
@@ -68,8 +68,6 @@ public class YoutubeUser {
     }
 
     Rss getFeed(String requestURL) {
-        Channel channel = getChannel();
-        channel.setItems(getUploads(requestURL));
-        return new Rss(channel);
+        return getChannel().items(getUploads(requestURL)).rss();
     }
 }

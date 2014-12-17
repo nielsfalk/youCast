@@ -1,6 +1,5 @@
 package de.nielsfalk.youCast;
 
-import de.nielsfalk.youCast.Rss.Channel;
 import de.nielsfalk.youCast.Rss.Item;
 import org.junit.Test;
 
@@ -10,6 +9,7 @@ import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.util.Date;
 
+import static de.nielsfalk.youCast.Rss.title;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -53,19 +53,18 @@ public class RssTest {
     }
 
     private Rss createTestFeed() {
-        Channel channel = new Channel()
+        return title("the Title")
                 .image("https://youCast.org/someOne/img.png")
-                .title("the Title")
                 .link("https://someone.org")
                 .description("someones podcast")
-                .author("someone");
-        channel.setItems(asList(
-                new Item("https://someone.org/episode3", "https://youcast.com/someone", "episode3")
-                        .author("someone")
-                        .description("here is my third episode.")
-                        .pubDate(new Date(1418776093046l))
-                        .duration(1)));
-        return new Rss(channel);
+                .author("someone")
+                .items(asList(
+                        new Item("https://someone.org/episode3", "https://youcast.com/someone", "episode3")
+                                .author("someone")
+                                .description("here is my third episode.")
+                                .pubDate(new Date(1418776093046l))
+                                .duration(1)))
+                .rss();
     }
 
     public String toXml(Object entity) {

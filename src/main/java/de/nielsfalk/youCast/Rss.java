@@ -1,5 +1,7 @@
 package de.nielsfalk.youCast;
 
+import de.nielsfalk.youCast.Rss.Adapters.DurationAdapter;
+import de.nielsfalk.youCast.Rss.Adapters.PubDateAdapter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +13,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -34,18 +35,17 @@ public class Rss {
     @XmlElement
     Channel channel;
 
-    public Rss(HttpServletRequest request) {
-        this();
-        channel = new Channel();
-        channel.setItems(Arrays.asList(new Item(channel, "https://www.youtube.com/watch?v=NswSP0Hrh9Q", request, "Niels Falk 42010")));
-    }
-
     public Rss() {
     }
 
-    public Rss(Channel channel) {
+    private Rss(Channel channel) {
         this();
         this.channel = channel;
+    }
+
+    static Channel title(String title) {
+        return new Channel()
+                .title(title);
     }
 
 
@@ -83,11 +83,6 @@ public class Rss {
         @XmlElement(name = "item")
         List<Item> items;
 
-        public void setItems(List<Item> items) {
-            this.items = items;
-        }
-
-
         public Channel image(String href) {
             image = new Image(href);
             return this;
@@ -114,6 +109,15 @@ public class Rss {
             author = user;
             owner = new Owner(user, user + '@' + user + ".buzz");
             return this;
+        }
+
+        public Channel items(List<Item> items) {
+            this.items = items;
+            return this;
+        }
+
+        public Rss rss() {
+            return new Rss(this);
         }
     }
 
@@ -261,38 +265,40 @@ public class Rss {
 
     }
 
-    public static class PubDateAdapter extends XmlAdapter<String, Date> {
-        private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static class Adapters {
+        public static class PubDateAdapter extends XmlAdapter<String, Date> {
+            private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        @Override
-        public String marshal(Date date) throws Exception {
-            return dateFormat.format(date);
-        }
-
-        @Override
-        public Date unmarshal(String string) throws Exception {
-            return dateFormat.parse(string);
-        }
-    }
-
-    public static class DurationAdapter extends XmlAdapter<String, Integer> {
-
-        @Override
-        public Integer unmarshal(String string) throws Exception {
-            int i = 0;
-            for (String part : StringUtils.split(string, ':')) {
-                i *= 60;
-                i += Integer.parseInt(part);
+            @Override
+            public String marshal(Date date) throws Exception {
+                return dateFormat.format(date);
             }
-            return i;
+
+            @Override
+            public Date unmarshal(String string) throws Exception {
+                return dateFormat.parse(string);
+            }
         }
 
-        @Override
-        public String marshal(Integer integer) throws Exception {
-            int minute = integer / 60;
-            Integer second = integer % 60;
+        public static class DurationAdapter extends XmlAdapter<String, Integer> {
 
-            return minute + ':' + StringUtils.leftPad(second.toString(), 2);
+            @Override
+            public Integer unmarshal(String string) throws Exception {
+                int i = 0;
+                for (String part : StringUtils.split(string, ':')) {
+                    i *= 60;
+                    i += Integer.parseInt(part);
+                }
+                return i;
+            }
+
+            @Override
+            public String marshal(Integer integer) throws Exception {
+                Integer minute = integer / 60;
+                Integer second = integer % 60;
+
+                return minute.toString() + ':' + StringUtils.leftPad(second.toString(), 2, '0');
+            }
         }
     }
 }
