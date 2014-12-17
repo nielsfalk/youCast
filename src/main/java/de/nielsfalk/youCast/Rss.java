@@ -1,4 +1,6 @@
-package de.nielsfalk.podcast;
+package de.nielsfalk.youCast;
+
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -30,12 +32,12 @@ public class Rss {
     private final String atom = "http://www.w3.org/2005/Atom";
 
     @XmlElement
-    private Channel channel;
+    Channel channel;
 
     public Rss(HttpServletRequest request) {
         this();
         channel = new Channel();
-        channel.setItems(Arrays.asList(new Item(channel, request, "https://www.youtube.com/watch?v=NswSP0Hrh9Q")));
+        channel.setItems(Arrays.asList(new Item(channel, "https://www.youtube.com/watch?v=NswSP0Hrh9Q", request, "Niels Falk 42010")));
     }
 
     public Rss() {
@@ -49,31 +51,31 @@ public class Rss {
 
     public static class Channel {
         @XmlElement
-        String title = "Der Spezialist";
+        String title;
 
         @XmlElement
-        String link = "http://www.nielsfalk.de/";
+        String link;
 
         @XmlElement
         private final String language = "de";
 
         @XmlElement(name = "itunes:subtitle")
-        String subTitle = "Der nagelneue Podcast zum Lorem Ypsum";
+        String subTitle;
 
         @XmlElement(name = "itunes:author")
-        private String author = "Niels Falk";
+        private String author;
 
         @XmlElement
-        String description = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
+        String description;
 
         @XmlElement(name = "itunes:summary")
-        private String summary = subTitle;
+        private String summary;
 
         @XmlElement(name = "itunes:explicit")
         private final String explicit = "no";
 
         @XmlElement(name = "itunes:owner")
-        private Owner owner = new Owner("Niels", "Podcast@Nielsfalk.de");
+        private Owner owner;
 
         @XmlElement(name = "itunes:image")
         Image image;
@@ -115,58 +117,76 @@ public class Rss {
         }
     }
 
-    public static class Item{
+    public static class Item {
         @XmlElement
-        private String title = "Niels Falk 42010";
+        String title;
 
         @XmlElement(name = "itunes:author")
         private String author;
 
         @XmlElement(name = "itunes:subtitle")
-        private String subTitle = "Niels Falk 42010";
+        private String subTitle;
 
         @XmlElement(name = "itunes:summary")
-        private String summary = subTitle;
+        private String summary;
 
         @XmlElement
-        private String description = "Niels Falk unicycling in Hamburg (Marco Polo Terrassen, Eimsbusch Skatepark, Acker Pool Co) and Berlin (Velodrom, Volkspark Friedrichshain, Schmetterlingsghetto). With Dori Lehmann, Uli Malende, Niko Wilbert and Nadine Wegner as guestriders. The Music is from Fuo (Carca, Zrk)";
+        String description;
 
         @XmlElement
-        private final Enclosure enclosure;
+        final Enclosure enclosure;
 
         @XmlElement
         private String link;
 
         @XmlElement
         @XmlJavaTypeAdapter(value = PubDateAdapter.class)
-        private Date pubDate = new Date();
+        private Date pubDate;
 
         @XmlElement(name = "itunes:duration")
-        private final String duration = "1:18:00";
+        @XmlJavaTypeAdapter(value = DurationAdapter.class)
+        Integer duration;
 
         @XmlElement(name = "itunes:explicit")
         private final String explicit = "no";
 
-        public Item(Channel channel, HttpServletRequest request, String link) {
-            this(link, request.getRequestURL().toString());
+        public Item(Channel channel, String link, HttpServletRequest request, String title) {
+            this(link, request.getRequestURL().toString(), title);
             author = channel.author;
         }
 
-        public Item(String link, String requestURL) {
+        public Item(String link, String requestURL, String title) {
             this.link = link;
+            this.title = title;
+            subTitle = title;
+            summary = title;
+
             StringBuilder url = new StringBuilder().append(requestURL);
             if (!url.toString().endsWith("/")) {
                 url.append('/');
             }
 
+            url.append(encode(link));
+
+            url.append('/');
+            url.append(createFileName(title));
+            enclosure = new Enclosure(url.toString());
+
+        }
+
+        private String createFileName(String title) {
+            if (StringUtils.isEmpty(title)) {
+                return "video.mp4";
+            }
+            return encode(title) + ".mp4";
+        }
+
+        private String encode(String string) {
             try {
-                url.append(URLEncoder.encode(link, "UTF-8"));
+                return URLEncoder.encode(string, "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
-            url.append("/video.mp4");
-            enclosure = new Enclosure(url.toString(), 209515617);
-
         }
 
         public Enclosure getEnclosure() {
@@ -194,20 +214,22 @@ public class Rss {
             this.pubDate = pubDate;
             return this;
         }
+
+        public Item duration(int duration) {
+            this.duration = duration;
+            return this;
+        }
     }
 
-    private static class Enclosure {
+    public static class Enclosure {
         @XmlAttribute
-        private final String url;
-        //@XmlAttribute
-        private final int length;
+        final String url;
 
         @XmlAttribute
         private final String type = "video/mpeg";
 
-        public Enclosure(String url, int length) {
+        public Enclosure(String url) {
             this.url = url;
-            this.length = length;
         }
     }
 
@@ -220,7 +242,7 @@ public class Rss {
         }
     }
 
-    public static class Owner{
+    public static class Owner {
 
         @XmlElement(name = "itunes:name")
         private final String name;
@@ -250,6 +272,27 @@ public class Rss {
         @Override
         public Date unmarshal(String string) throws Exception {
             return dateFormat.parse(string);
+        }
+    }
+
+    public static class DurationAdapter extends XmlAdapter<String, Integer> {
+
+        @Override
+        public Integer unmarshal(String string) throws Exception {
+            int i = 0;
+            for (String part : StringUtils.split(string, ':')) {
+                i *= 60;
+                i += Integer.parseInt(part);
+            }
+            return i;
+        }
+
+        @Override
+        public String marshal(Integer integer) throws Exception {
+            int minute = integer / 60;
+            Integer second = integer % 60;
+
+            return minute + ':' + StringUtils.leftPad(second.toString(), 2);
         }
     }
 }

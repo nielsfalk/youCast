@@ -1,7 +1,7 @@
-package de.nielsfalk.podcast;
+package de.nielsfalk.youCast;
 
-import de.nielsfalk.podcast.Rss.Channel;
-import de.nielsfalk.podcast.Rss.Item;
+import de.nielsfalk.youCast.Rss.Channel;
+import de.nielsfalk.youCast.Rss.Item;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -47,14 +47,17 @@ public class YoutubeUser {
             List<Item> result = new ArrayList<>();
             Document document = Jsoup.parse(xml);
             for (Element upload : document.getElementsByTag("entry")) {
+                String title = upload.getElementsByTag("title").text();
+                int duration = Integer.parseInt(upload.getElementsByAttribute("duration").attr("duration"));
+                String link = upload.getElementsByAttributeValue("rel", "alternate").attr("href");
+
                 result.add(
-                        new Item(upload.getElementsByAttributeValue("rel", "alternate").attr("href"), requestURL)
-                                .title(upload.getElementsByTag("title").text())
+                        new Item(link, requestURL, title)
                                 .author(upload.getElementsByTag("author").get(0).getElementsByTag("name").text())
                                 .description(upload.getElementsByTag("content").text())
                                 .pubDate(parseDateTime(upload.getElementsByTag("published").text()).getTime())
+                                .duration(duration)
                 );
-                //todo: niels 16.12.2014 :duration
             }
 
 
@@ -62,5 +65,11 @@ public class YoutubeUser {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    Rss getFeed(String requestURL) {
+        Channel channel = getChannel();
+        channel.setItems(getUploads(requestURL));
+        return new Rss(channel);
     }
 }
