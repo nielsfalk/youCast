@@ -1,7 +1,7 @@
 package de.nielsfalk.youCast;
 
-import de.nielsfalk.youCast.Rss.Channel;
-import de.nielsfalk.youCast.Rss.Item;
+import de.nielsfalk.youCast.PodcastRss.Channel;
+import de.nielsfalk.youCast.PodcastRss.Item;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,7 +12,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.nielsfalk.youCast.Rss.title;
+import static de.nielsfalk.youCast.PodcastRss.title;
 import static javax.xml.bind.DatatypeConverter.parseDateTime;
 
 /**
@@ -67,7 +67,7 @@ public class YoutubeUser {
         }
     }
 
-    Rss getFeed(String requestURL) {
+    PodcastRss getFeed(String requestURL) {
         return getChannel().items(getUploads(requestURL)).rss();
     }
 }

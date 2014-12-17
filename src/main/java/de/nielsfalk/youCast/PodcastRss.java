@@ -1,7 +1,7 @@
 package de.nielsfalk.youCast;
 
-import de.nielsfalk.youCast.Rss.Adapters.DurationAdapter;
-import de.nielsfalk.youCast.Rss.Adapters.PubDateAdapter;
+import de.nielsfalk.youCast.PodcastRss.Adapters.DurationAdapter;
+import de.nielsfalk.youCast.PodcastRss.Adapters.PubDateAdapter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 @SuppressWarnings("UnusedDeclaration")
 @XmlRootElement(name = "rss")
-public class Rss {
+public class PodcastRss {
 
     @XmlAttribute(name = "xmlns:itunes")
     private final String iTunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
@@ -35,10 +35,10 @@ public class Rss {
     @XmlElement
     Channel channel;
 
-    public Rss() {
+    public PodcastRss() {
     }
 
-    private Rss(Channel channel) {
+    private PodcastRss(Channel channel) {
         this();
         this.channel = channel;
     }
@@ -116,8 +116,8 @@ public class Rss {
             return this;
         }
 
-        public Rss rss() {
-            return new Rss(this);
+        public PodcastRss rss() {
+            return new PodcastRss(this);
         }
     }
 
