@@ -7,7 +7,7 @@ import spock.lang.Specification
 /**
  * @author Niels Falk
  */
-class AdapterSpecss extends Specification {
+class AdapterSpec extends Specification {
     def "marshal duration"() {
         expect:
         new DurationAdapter().marshal(givenSeconds) == expectedXml
