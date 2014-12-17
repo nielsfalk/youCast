@@ -1,1 +1,1 @@
-web: java -cp target/classes:target/dependency/* de.nielsfalk.podcast.heroku.Main
+web: java -cp target/classes:target/dependency/* de.nielsfalk.youCast.heroku.Main
