@@ -12,29 +12,29 @@ import java.net.URISyntaxException;
 import static com.github.axet.vget.VGetBridge.realUrl;
 import static javax.ws.rs.core.Response.Status.MOVED_PERMANENTLY;
 
-@Path("feed")
-@Produces({"application/rss+xml;charset=utf-8"})
+@Path("/")
 public class FeedResource {
 
     @Context
-    private HttpServletRequest request;
+    HttpServletRequest request;
 
-    @Path("{user}")
+    @Path("{source}/{parameter}")
+    @Produces({"application/rss+xml;charset=utf-8"})
     @GET
-    public Response youtube(@PathParam("user") String user) {
-        return Response.ok(new YoutubeUser(user).getFeed(getRequestURL())).build();
+    public Response youtube(@PathParam("parameter") String parameter, @PathParam("source") Source source) {
+        return Response.ok(source.getFeed(parameter, videoUrlPrefix(source))).build();
     }
 
-    @Path("{user}/{playback}/{fileName}.mp4")
+    @Path("{source}/{playback}/{fileName}.mp4")
     @GET
-    public Response getVideo(@PathParam("playback") String playback, @PathParam("user") String user, @PathParam("fileName") String ignored) throws URISyntaxException {
+    public Response getVideo(@PathParam("playback") String playback, @PathParam("source") Source source) throws URISyntaxException {
         return Response
                 .status(MOVED_PERMANENTLY)
-                .location(realUrl(playback)).build();
+                .location(source.realUrl(playback)).build();
     }
 
-    private String getRequestURL() {
-        return request.getRequestURL().toString();
+    String videoUrlPrefix(Source source) {
+        String request = this.request.getRequestURL().toString();
+        return request.substring(0, request.indexOf(source.name())+source.name().length());
     }
-
 }

@@ -2,12 +2,14 @@ package de.nielsfalk.youCast
 
 import spock.lang.Specification
 
+import static de.nielsfalk.youCast.Source.youtube
+
 /**
  * @author Niels Falk
  */
 class YoutubeUserSpec extends Specification {
     def "createFeed"() {
-        def niles = new YoutubeUser("niles781").getFeed("https://youCast.org/")
+        def niles = youtube.getFeed("niles781", "https://youCast.org/")
         def firstItem = niles.channel.items.get(0)
 
         expect:
