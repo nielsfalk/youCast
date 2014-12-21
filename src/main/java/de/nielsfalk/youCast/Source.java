@@ -1,6 +1,5 @@
 package de.nielsfalk.youCast;
 
-import com.github.axet.vget.VGetBridge;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

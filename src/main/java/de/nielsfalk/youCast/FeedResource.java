@@ -9,7 +9,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
 
-import static com.github.axet.vget.VGetBridge.realUrl;
 import static javax.ws.rs.core.Response.Status.MOVED_PERMANENTLY;
 
 @Path("/")

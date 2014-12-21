@@ -1,8 +1,8 @@
-package com.github.axet.vget
+package de.nielsfalk.youCast
 
 import spock.lang.Specification
 
-import static com.github.axet.vget.VGetBridge.realUrl
+import static de.nielsfalk.youCast.VGetBridge.realUrl
 
 
 /**

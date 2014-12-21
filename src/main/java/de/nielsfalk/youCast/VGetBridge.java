@@ -1,6 +1,8 @@
-package com.github.axet.vget;
+package de.nielsfalk.youCast;
 
-import java.io.File;
+import com.github.axet.vget.VGet;
+import com.github.axet.vget.info.VideoInfo;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -9,9 +11,11 @@ import java.net.URL;
 public class VGetBridge {
     public static URI realUrl(String url) {
         try {
-            VGet vGet = new VGet(new URL(url), new File("."));
+            URL videoPage = new URL(url);
+            VideoInfo info = VGet.parser(null, videoPage).info(videoPage);
+            VGet vGet = new VGet(info, null);
             vGet.extract();
-            return vGet.info.getInfo().getSource().toURI();
+            return info.getInfo().getSource().toURI();
         } catch (MalformedURLException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
