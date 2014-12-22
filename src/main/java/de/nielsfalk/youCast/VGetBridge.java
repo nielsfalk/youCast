@@ -8,7 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class VGetBridge {
+class VGetBridge {
     public static URI realUrl(String url) {
         try {
             URL videoPage = new URL(url);

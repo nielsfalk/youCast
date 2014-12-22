@@ -9,12 +9,23 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static de.nielsfalk.youCast.PodcastRss.title;
@@ -39,27 +50,90 @@ public enum Source {
         public PodcastRss getFeed(String jsonUrl, String requestUrl) {
             return new PodcastJson(jsonUrl, requestUrl).getFeed();
         }
+    }, vimeo {
+        @Override
+        public PodcastRss getFeed(String user, String requestUrl) {
+            return new VimeoUser(user).getFeed(requestUrl);
+        }
 
         @Override
         public URI realUrl(String playback) {
-            try {
-                return new URI(playback);
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException(e);
-            }
+            return VGetBridge.realUrl(playback);
         }
     };
+
+    public abstract PodcastRss getFeed(String parameter, String requestUrl);
+
+    public URI realUrl(String playback) {
+        try {
+            return new URI(playback);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private static class VimeoUser {
+        private final String user;
+
+        public VimeoUser(String user) {
+            this.user = user;
+        }
+
+        public PodcastRss getFeed(String requestUrl) {
+            try {
+                URL url = new URL("https://vimeo.com/" + user + "/videos/rss");
+                DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = builderFactory.newDocumentBuilder();
+                try(InputStream is = url.openStream()){
+                    org.w3c.dom.Document document = builder.parse(is);
+
+                XPath xPath = XPathFactory.newInstance().newXPath();
+
+                return title(xPath.compile("/rss/channel/title").evaluate(document))
+                        .image(xPath.compile("/rss/channel/image/url").evaluate(document))
+                        .link(xPath.compile("/rss/channel/link").evaluate(document))
+                        .description("/rss/channel/description")
+                        .author(user).items(getItems(requestUrl, document, xPath)).rss();
+                }
+            } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        private List<Item> getItems(String requestUrl, org.w3c.dom.Document document, XPath xPath) throws XPathExpressionException {
+            ArrayList<Item> result = new ArrayList<>();
+            for (int i = 1; ; i++) {
+                String pathPrefix = "/rss/channel/item[" + i + "]";
+                String link = xPath.compile(pathPrefix + "/link").evaluate(document);
+                try {
+                    String time = xPath.compile(pathPrefix + "/pubDate").evaluate(document);
+                    Date pubDate = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(time);
+
+                    result.add(
+                            new Item(link, requestUrl, xPath.compile(pathPrefix + "/title").evaluate(document))
+                                    .author(xPath.compile(pathPrefix + "/dc:creator").evaluate(document))
+                                    .description(xPath.compile(pathPrefix + "/description").evaluate(document))
+                                    .pubDate(pubDate));
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+                if (link.equals(xPath.compile("/rss/channel/item[last()]/link").evaluate(document))) {
+                    break;
+                }
+            }
+            return result;
+        }
+    }
 
     private static class PodcastJson {
 
         private final JSONObject jsonObject;
-        private final String jsonUrl;
         private final String requestUrl;
         private String urlSuffix = "";
         private String urlPrefix = "";
 
         public PodcastJson(String jsonUrl, String requestUrl) {
-            this.jsonUrl = jsonUrl;
             this.requestUrl = requestUrl;
             try {
                 String json = IOUtils.toString(new URL(jsonUrl), "UTF8");
@@ -76,7 +150,7 @@ public enum Source {
                     break;
                 }
             }
-            urlPrefix = urlPrefix.substring(0, urlPrefix.lastIndexOf("/")+1);
+            urlPrefix = urlPrefix.substring(0, urlPrefix.lastIndexOf("/") + 1);
 
         }
 
@@ -109,16 +183,12 @@ public enum Source {
         }
 
         private String relativeUrl(String href) {
-            if (href.startsWith("http")){
+            if (href.startsWith("http")) {
                 return href;
             }
             return urlPrefix + href + urlSuffix;
         }
     }
-
-    public abstract PodcastRss getFeed(String parameter, String requestUrl);
-
-    public abstract URI realUrl(String playback);
 
     private static class YoutubeUser {
         private final String user;

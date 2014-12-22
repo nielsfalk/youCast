@@ -5,6 +5,7 @@ import spock.lang.Specification
 import javax.servlet.http.HttpServletRequest
 
 import static de.nielsfalk.youCast.Source.json
+import static de.nielsfalk.youCast.Source.vimeo
 import static de.nielsfalk.youCast.Source.youtube
 import static org.mockito.Mockito.mock
 import static org.mockito.Mockito.when
@@ -13,15 +14,8 @@ import static de.nielsfalk.youCast.PodcastRss.Adapters.PubDateAdapter
 /**
  * @author Niels Falk
  */
-class FeedResourceTest extends Specification {
+class FeedResourceSpec extends Specification {
     private FeedResource resource
-
-    def setup() {
-        resource = new FeedResource()
-        resource.request = mock(HttpServletRequest.class)
-        when(resource.request.getRequestURL()).thenReturn(new StringBuffer("https://youCast.org/youtube/TomBoSphere"))
-
-    }
 
     def "videoUrlPrefix"() {
         request("https://youCast.org/youtube/TomBoSphere")
@@ -59,11 +53,25 @@ class FeedResourceTest extends Specification {
         firstItem.duration == 280
     }
 
+    def "vimeo"(){
+        def rss = podCastRequest("https://youCast.org/", vimeo, "sinco")
+        def firstItem = rss.channel.items.get(0)
+
+        expect:
+        rss.channel.image.href == "https://i.vimeocdn.com/portrait/3189371_100x100.jpg"
+        rss.channel.title == "Vimeo / sinco's videos"
+        rss.channel.link == "http://vimeo.com/sinco/videos"
+        firstItem.title == "this fire"
+        firstItem.duration == null
+        firstItem.enclosure.url == "https://youCast.org/vimeo/http%3A%2F%2Fvimeo.com%2F89392551/this+fire.mp4"
+
+
+    }
+
     def PodcastRss podCastRequest(String baseUrl, Source source, String parameter) {
         request(baseUrl + source.name() + parameter)
         def podcast = resource.podcast(parameter, source)
-        def rss = podcast.getEntity()
-        rss
+        podcast.getEntity()
     }
 
     def request(String url) {

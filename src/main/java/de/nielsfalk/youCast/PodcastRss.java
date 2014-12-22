@@ -4,7 +4,6 @@ import de.nielsfalk.youCast.PodcastRss.Adapters.DurationAdapter;
 import de.nielsfalk.youCast.PodcastRss.Adapters.PubDateAdapter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -152,7 +151,7 @@ public class PodcastRss {
         final Enclosure enclosure;
 
         @XmlElement
-        private String link;
+        private final String link;
 
         @XmlElement
         @XmlJavaTypeAdapter(value = PubDateAdapter.class)
@@ -259,13 +258,9 @@ public class PodcastRss {
         }
     }
 
-    public static class AtomLink {
-
-    }
-
     public static class Adapters {
         public static class PubDateAdapter extends XmlAdapter<String, Date> {
-            private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             @Override
             public String marshal(Date date) throws Exception {
