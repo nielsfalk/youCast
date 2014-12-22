@@ -40,7 +40,7 @@ please type in your console
 * heroku create
 * git push heroku master
 
-In the log the is a Link for your application (for example https://limitless-basin-4741.herokuapp.com ).
+In the log is a link for your youCast deployment (for example https://limitless-basin-4741.herokuapp.com ).
 
 The Icon
 --------
