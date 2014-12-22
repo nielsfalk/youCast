@@ -5,7 +5,7 @@ allows you to subscribe sources like vimeo or youtube as podcast.
 
 json subscription
 -----------------
-create your own podcast be writing easy json like [this](https://www.wuala.com/nielsfalk/myCast/nielsFalk.json/?dl=1)
+create your own podcast be writing easy json like [this](https://www.wuala.com/nielsfalk/myCast/nielsFalk.json/?dl=1).
 people can subscribe it by using
 
 [(the youCast deployment)/json/https%3A%2F%2Fcontent.wuala.com%2Fcontents%2Fnielsfalk%2FmyCast%2FnielsFalk.json%2F%3Fdl%3D1](https://gentle-depths-8524.herokuapp.com/json/https%3A%2F%2Fcontent.wuala.com%2Fcontents%2Fnielsfalk%2FmyCast%2FnielsFalk.json%2F%3Fdl%3D1)
