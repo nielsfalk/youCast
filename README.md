@@ -34,11 +34,11 @@ For a deployment on Heroku you need:
 * git
 
 please type in your console
-    git clone https://github.com/nielsfalk/youCast.git
-    cd youCast
-    heroku login
-    heroku create
-    git push heroku master
+* git clone https://github.com/nielsfalk/youCast.git
+* cd youCast
+* heroku login
+* heroku create
+* git push heroku master
 
 In the log the is a Link for your application (for example https://limitless-basin-4741.herokuapp.com ).
 
