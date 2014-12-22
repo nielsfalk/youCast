@@ -48,6 +48,13 @@ public class PodcastRss {
                 .title(title);
     }
 
+    private static String encode(String string) {
+        try {
+            return URLEncoder.encode(string, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static class Channel {
         @XmlElement
@@ -105,10 +112,14 @@ public class PodcastRss {
             return this;
         }
 
-        public Channel author(String user) {
+        public Channel author(String user, String email) {
             author = user;
-            owner = new Owner(user, user + '@' + user + ".buzz");
+            owner = new Owner(user, email);
             return this;
+        }
+
+        public Channel author(String user) {
+            return author(user, user + '@' + user + ".buzz");
         }
 
         public Channel items(List<Item> items) {
@@ -154,11 +165,6 @@ public class PodcastRss {
         @XmlElement(name = "itunes:explicit")
         private final String explicit = "no";
 
-        public Item(Channel channel, String link, HttpServletRequest request, String title) {
-            this(link, request.getRequestURL().toString(), title);
-            author = channel.author;
-        }
-
         public Item(String link, String requestURL, String title) {
             this.link = link;
             this.title = title;
@@ -183,14 +189,6 @@ public class PodcastRss {
                 return "video.mp4";
             }
             return encode(title) + ".mp4";
-        }
-
-        private String encode(String string) {
-            try {
-                return URLEncoder.encode(string, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         public Enclosure getEnclosure() {

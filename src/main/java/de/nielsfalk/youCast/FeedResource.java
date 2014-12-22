@@ -20,7 +20,7 @@ public class FeedResource {
     @Path("{source}/{parameter}")
     @Produces({"application/rss+xml;charset=utf-8"})
     @GET
-    public Response youtube(@PathParam("parameter") String parameter, @PathParam("source") Source source) {
+    public Response podcast(@PathParam("parameter") String parameter, @PathParam("source") Source source) {
         return Response.ok(source.getFeed(parameter, videoUrlPrefix(source))).build();
     }
 
