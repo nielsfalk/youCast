@@ -17,7 +17,12 @@ public class Main {
             webPort = "8080";
         }
 
-        final Server server = new Server(Integer.valueOf(webPort));
+        final Server server = startServer(Integer.valueOf(webPort));
+        server.join();
+    }
+
+    public static Server startServer(Integer port) throws Exception {
+        final Server server = new Server(port);
         final WebAppContext root = new WebAppContext();
 
         root.setContextPath("/");
@@ -35,6 +40,6 @@ public class Main {
         server.setHandler(root);
 
         server.start();
-        server.join();
+        return server;
     }
 }

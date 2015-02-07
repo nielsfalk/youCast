@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.github.axet</groupId>
             <artifactId>vget</artifactId>
-            <version>1.1.22</version>
+            <version>1.1.23</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -70,7 +70,7 @@
     </dependencies>
 
     <build>
-        <finalName>podcast-feed</finalName>
+        <finalName>youcast</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -97,6 +97,19 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.nielsfalk.youCast.YouCast</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>server</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
             </plugin>
         </plugins>
     </build>
