@@ -1,6 +1,5 @@
 package de.nielsfalk.youCast;
 
-import com.apple.eawt.Application;
 import de.nielsfalk.youCast.heroku.Main;
 import org.eclipse.jetty.server.Server;
 
@@ -17,7 +16,7 @@ public class YouCast {
 
         JFrame youCast = new JFrame("youCast");
         if (envelopeImage != null) {
-            Application.getApplication().setDockIconImage(Toolkit.getDefaultToolkit().getImage(envelopeImage));
+            //Application.getApplication().setDockIconImage(Toolkit.getDefaultToolkit().getImage(envelopeImage));
         }
         int port = 8521;
         try {
