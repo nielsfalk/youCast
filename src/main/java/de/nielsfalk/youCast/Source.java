@@ -26,10 +26,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import static de.nielsfalk.youCast.PodcastRss.title;
 import static javax.xml.bind.DatatypeConverter.parseDateTime;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
 
 /**
  * @author Niels Falk
@@ -84,16 +86,16 @@ public enum Source {
                 URL url = new URL("https://vimeo.com/" + user + "/videos/rss");
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = builderFactory.newDocumentBuilder();
-                try(InputStream is = url.openStream()){
+                try (InputStream is = url.openStream()) {
                     org.w3c.dom.Document document = builder.parse(is);
 
-                XPath xPath = XPathFactory.newInstance().newXPath();
+                    XPath xPath = XPathFactory.newInstance().newXPath();
 
-                return title(xPath.compile("/rss/channel/title").evaluate(document))
-                        .image(xPath.compile("/rss/channel/image/url").evaluate(document))
-                        .link(xPath.compile("/rss/channel/link").evaluate(document))
-                        .description("/rss/channel/description")
-                        .author(user).items(getItems(requestUrl, document, xPath)).rss();
+                    return title(xPath.compile("/rss/channel/title").evaluate(document))
+                            .image(xPath.compile("/rss/channel/image/url").evaluate(document))
+                            .link(xPath.compile("/rss/channel/link").evaluate(document))
+                            .description("/rss/channel/description")
+                            .author(user).items(getItems(requestUrl, document, xPath)).rss();
                 }
             } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
                 throw new RuntimeException(e);
@@ -192,54 +194,67 @@ public enum Source {
 
     private static class YoutubeUser {
         private final String user;
+        private Document rss;
+        private Document html;
 
         private YoutubeUser(String user) {
             this.user = user;
         }
 
         private PodcastRss.Channel getChannel() {
-            try {
-                String xml = IOUtils.toString(new URL("https://gdata.youtube.com/feeds/api/users/" + user), "UTF8");
-                Document document = Jsoup.parse(xml);
-
-                return title(document.getElementsByTag("title").text())
-                        .image(document.getElementsByTag("media:thumbnail").attr("url"))
+                return title(removeEnd(getHtml().getElementsByTag("title").text(), "\n - YouTube"))
+                        .image(getHtml().getElementsByClass("channel-header-profile-image").attr("src"))
                         .link("https://www.youtube.com/user/" + user)
-                        .description(document.getElementsByTag("content").text())
                         .author(user);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         private List<Item> getUploads(String requestURL) {
-            try {
-                String xml = IOUtils.toString(new URL("https://gdata.youtube.com/feeds/api/users/" + user + "/uploads"), "UTF8");
-                List<Item> result = new ArrayList<>();
-                Document document = Jsoup.parse(xml);
-                for (Element upload : document.getElementsByTag("entry")) {
-                    String title = upload.getElementsByTag("title").text();
-                    int duration = Integer.parseInt(upload.getElementsByAttribute("duration").attr("duration"));
-                    String link = upload.getElementsByAttributeValue("rel", "alternate").attr("href");
-
-                    result.add(
-                            new Item(link, requestURL, title)
-                                    .author(upload.getElementsByTag("author").get(0).getElementsByTag("name").text())
-                                    .description(upload.getElementsByTag("content").text())
-                                    .pubDate(parseDateTime(upload.getElementsByTag("published").text()).getTime())
-                                    .duration(duration)
-                    );
-                }
-
-
-                return result;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            List<Item> result = new ArrayList<>();
+            Iterator<Element> pageIterator = getHtml().getElementsByClass("feed-item-container").iterator();
+            Iterator<Element> rssIterator = getRss().getElementsByTag("entry").iterator();
+            while (pageIterator.hasNext() && rssIterator.hasNext()){
+                Element pageElement = pageIterator.next();
+                Element rssElement = rssIterator.next();
+                Element a = pageElement.getElementsByTag("a").last();
+                String title = a.text();
+                int duration = new DurationAdapter().unmarshal(pageElement.getElementsByClass("video-time").text());
+                String link = "https://www.youtube.com" +pageElement.getElementsByTag("a").last().attr("href");
+                result.add(
+                        new Item(link, requestURL, title)
+                                .author(user)
+                                .description(pageElement.getElementsByClass("yt-lockup-description").text())
+                                .pubDate(parseDateTime(rssElement.getElementsByTag("published").text()).getTime())
+                                .duration(duration)
+                );
             }
+            return result;
         }
 
         private PodcastRss getFeed(String requestURL) {
             return getChannel().items(getUploads(requestURL)).rss();
+        }
+
+        private Document getHtml() {
+            if (html == null) {
+                try {
+                    html = Jsoup.parse(IOUtils.toString(new URL("https://www.youtube.com/user/" + user + "/videos?flow=list"), "UTF8"));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return html;
+        }
+
+        private Document getRss() {
+            if (rss == null) {
+                String rssUrl = getHtml().getElementsByAttributeValue("title", "RSS").attr("href");
+                try {
+                    rss = Jsoup.parse(IOUtils.toString(new URL(rssUrl), "UTF8"));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return rss;
         }
     }
 }

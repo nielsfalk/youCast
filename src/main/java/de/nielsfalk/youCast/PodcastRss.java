@@ -155,7 +155,7 @@ public class PodcastRss {
 
         @XmlElement
         @XmlJavaTypeAdapter(value = PubDateAdapter.class)
-        private Date pubDate;
+        Date pubDate;
 
         @XmlElement(name = "itunes:duration")
         @XmlJavaTypeAdapter(value = DurationAdapter.class)
@@ -276,7 +276,7 @@ public class PodcastRss {
         public static class DurationAdapter extends XmlAdapter<String, Integer> {
 
             @Override
-            public Integer unmarshal(String string) throws Exception {
+            public Integer unmarshal(String string){
                 int i = 0;
                 for (String part : StringUtils.split(string, ':')) {
                     i *= 60;

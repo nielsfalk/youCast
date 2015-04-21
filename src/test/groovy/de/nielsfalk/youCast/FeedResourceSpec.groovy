@@ -29,13 +29,14 @@ class FeedResourceSpec extends Specification {
         def firstItem = rss.channel.items.get(0)
 
         expect:
-        rss.channel.image.href == "https://yt3.ggpht.com/-bmxPx2cdAb8/AAAAAAAAAAI/AAAAAAAAAAA/Z94xCf16BDU/s88-c-k-no/photo.jpg"
+        rss.channel.image.href == "https://yt3.ggpht.com/-bmxPx2cdAb8/AAAAAAAAAAI/AAAAAAAAAAA/Z94xCf16BDU/s100-c-k-no/photo.jpg"
         rss.channel.title == "niles781"
         rss.channel.link == "https://www.youtube.com/user/niles781"
         firstItem.title == "25"
         firstItem.description == "This video is about stairs"
         firstItem.duration == 75
-        firstItem.enclosure.url == "https://youCast.org/youtube/https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DBSXXITYa6nI%26feature%3Dyoutube_gdata/25.mp4"
+        firstItem.enclosure.url == "https://youCast.org/youtube/https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DBSXXITYa6nI/25.mp4"
+        firstItem.pubDate == new Date(1383389103000)
     }
 
     def "json"() {
@@ -55,7 +56,7 @@ class FeedResourceSpec extends Specification {
 
     def "vimeo"(){
         def rss = podCastRequest("https://youCast.org/", vimeo, "sinco")
-        def firstItem = rss.channel.items.get(0)
+        def firstItem = rss.channel.items.get(1)
 
         expect:
         rss.channel.image.href == "https://i.vimeocdn.com/portrait/3189371_100x100.jpg"
